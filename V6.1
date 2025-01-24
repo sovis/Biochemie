@@ -1,1 +1,116 @@
-ll
+import math
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Konstante Volumina
+K3_VOLUME = 40.0  # Volumen von K3[FeIII(CN)6]
+K4_VOLUME = 40.0  # Volumen von K4[FeII(CN)6]
+
+# Funktion zur Berechnung von %Fe3+ (FeIII konstant)
+def berechne_prozent_feiii_konstant(k3_volumen_liste, potential_liste, k4_volumen=K4_VOLUME):
+    prozent_liste = []
+    for k3_volumen, potential in zip(k3_volumen_liste, potential_liste):
+        gesamt_volumen = k4_volumen + k3_volumen
+        prozent_fe3 = (k3_volumen * 100) / gesamt_volumen
+        prozent_liste.append(prozent_fe3)
+    return prozent_liste
+
+# Funktion zur Berechnung von %Fe3+ (FeII konstant)
+def berechne_prozent_fe3_feii_konstant(k4_volumen_liste, potential_liste, k3_volumen=K3_VOLUME):
+    prozent_liste = []
+    for k4_volumen, potential in zip(k4_volumen_liste, potential_liste):
+        gesamt_volumen = k3_volumen + k4_volumen
+        prozent_fe3 = (k3_volumen * 100) / gesamt_volumen
+        prozent_liste.append(prozent_fe3)
+    return prozent_liste
+
+# Funktion zur Berechnung von log([Fe3+]/[Fe2+])
+def berechne_log_verhältnis(k4_volumen, k3_volumen):
+    if k3_volumen == 0 or k4_volumen == 0:
+        return float('-inf')  # Vermeidung von Division durch Null
+    verhältnis_fe3_fe2 = k3_volumen / k4_volumen
+    return math.log10(verhältnis_fe3_fe2)
+
+# Funktion zur Berechnung und Plotten der Messwerte
+def plot_redox_graphs(k4_volumen_liste, k3_volumen_liste, potential_liste_feii, potential_liste_feiii, e_standard_mV=360):
+    # Berechnung der Prozentwerte
+    fe3_prozent_feii_konstant = berechne_prozent_fe3_feii_konstant(k4_volumen_liste, potential_liste_feii)
+    fe3_prozent_feiii_konstant = berechne_prozent_feiii_konstant(k3_volumen_liste, potential_liste_feiii)
+
+    # Berechnung von log([Fe3+]/[Fe2+])
+    log_verhältnis_feii = [
+        berechne_log_verhältnis(k4, K3_VOLUME) for k4 in k4_volumen_liste
+    ]
+    log_verhältnis_feiii = [
+        berechne_log_verhältnis(K4_VOLUME, k3) for k3 in k3_volumen_liste
+    ]
+    
+    # Erstes Diagramm: Redoxpotential vs. %Fe3+
+    plt.figure(figsize=(10, 6))
+    plt.plot(fe3_prozent_feii_konstant, potential_liste_feii, color="#2a2666", marker='o', linestyle='-', label="Prozentsatz Fe3")  # Custom color
+    plt.plot(fe3_prozent_feiii_konstant, potential_liste_feiii, color="#2a2666", marker='o', linestyle='-')
+    plt.xlabel("Prozentsatz Fe³⁺ [%]")
+    plt.ylabel("Redoxpotential [mV]")
+    plt.title("Redoxpotential vs. Prozentsatz Fe³⁺")
+    plt.grid()
+    plt.axhline(440, color="r", linestyle="--", label="Literaturwert: 440 mV")
+    plt.legend()
+    plt.show()
+
+    # Zweites Diagramm: Redoxpotential vs. log([Fe3+]/[Fe2+])
+
+    # Filter out invalid log values
+    valid_indices_feii = [
+        i for i, log_val in enumerate(log_verhältnis_feii) if not np.isinf(log_val)
+    ]
+    valid_indices_feiii = [
+        i for i, log_val in enumerate(log_verhältnis_feiii) if not np.isinf(log_val)
+    ]
+
+    # Create filtered data for regression
+    x_data_feii = np.array([log_verhältnis_feii[i] for i in valid_indices_feii])
+    y_data_feii = np.array([potential_liste_feii[i] for i in valid_indices_feii])
+
+    # Perform linear regression for FeII constant
+    if len(x_data_feii) > 1:
+        slope_feii, intercept_feii = np.polyfit(x_data_feii, y_data_feii, 1)
+        regression_line_feii = slope_feii * x_data_feii + intercept_feii
+           # Calculate R^2
+        ss_total = np.sum((y_data_feii - np.mean(y_data_feii))**2)
+        ss_residual = np.sum((y_data_feii - regression_line_feii)**2)
+        r_squared_feii = 1 - (ss_residual / ss_total)
+    else:
+        slope_feii, intercept_feii, r_squared_feii = None, None, None
+
+    # Plot for FeII constant
+    plt.figure(figsize=(10, 6))
+    plt.plot(x_data_feii, y_data_feii, color="#263666", marker='o', linestyle='-', label="Messwerte FeII")
+    if slope_feii is not None:
+        plt.plot(x_data_feii, regression_line_feii, color="green", linestyle="--", label=f"Fit: y = {slope_feii:.2f}x + {intercept_feii:.2f} (R² = {r_squared_feii:.4f})")
+
+    plt.xlabel("log([Fe³⁺]/[Fe²⁺])")
+    plt.ylabel("Redoxpotential [mV]")
+    plt.title("Redoxpotential vs. log([Fe³⁺]/[Fe²⁺]) (Fe(II) konstant)")
+    plt.grid()
+    plt.axhline(440, color="r", linestyle="--", label="Literaturwert: 440 mV")
+    plt.legend()
+    plt.show()
+
+# werte für beide Messungen
+k4_volumen_liste_feii = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0]
+k3_volumen_liste_feiii = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0]
+potential_liste_feii = [448, 347, 330, 320, 313, 302, 289, 279, 272, 266, 261, 257, 254, 251, 248, 238, 231, 225, 221, 217, 214]
+potential_liste_feiii = [81, 97, 107, 114, 119, 124, 139, 149, 156, 161, 166, 170, 173, 177, 179, 189, 196, 202, 206, 210, 213]
+
+# Prozentwerte berechnen
+prozent_fe3_feii_konstant = berechne_prozent_fe3_feii_konstant(k4_volumen_liste_feii, potential_liste_feii)
+prozent_fe3_feiii_konstant = berechne_prozent_feiii_konstant(k3_volumen_liste_feiii, potential_liste_feiii)
+
+# Ergebnisse anzeigen
+print("FeII konstant (Fall 1) - %Fe3+:")
+print([f"{wert:.2f}%" for wert in prozent_fe3_feii_konstant])
+
+print("\nFeIII konstant (Fall 2) - %Fe3+:")
+print([f"{wert:.2f}%" for wert in prozent_fe3_feiii_konstant])
+# Plots erstellen
+plot_redox_graphs(k4_volumen_liste_feii, k3_volumen_liste_feiii, potential_liste_feii, potential_liste_feiii)
