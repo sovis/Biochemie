@@ -1,1 +1,49 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import linregress
 
+# Funktion zur Verarbeitung der Daten 
+def process_data_for_all_ansätze(volumes, pH_values, potential_values):
+    # Lineare Regression durchführen 
+    slope, intercept, r_value, _, _ = linregress(pH_values, potential_values)
+
+    # E₀ berechnen (Extrapolation auf pH = 0)
+    E0 = intercept
+
+    # Plotten
+    plt.figure(figsize=(8, 6))
+    plt.scatter(pH_values, potential_values, label="Gemessene Daten", color="blue")
+    plt.plot(pH_values, slope * np.array(pH_values) + intercept, 
+             label=f"Fit: E = {slope:.2f} * pH + {intercept:.2f}\nR² = {r_value**2:.4f}", 
+             color="red")
+
+    # Formatierung des Graphen
+    plt.title("Potential vs. pH")
+    plt.xlabel("pH-Wert")
+    plt.ylabel("Potential (mV)")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig("potential_vs_ph_plot.png")  # Speichern des Plots
+    plt.show()
+
+    # Ergebnisse ausgeben
+    print(f"Messergebnisse:")
+    print(f"  - E₀ (extrapoliert auf pH=0): {E0:.2f} mV")
+    print(f"  - ΔE/ΔpH (Steigung): {slope:.2f} mV/pH")
+    print(f"  - R²: {r_value**2:.4f}")
+
+# listen
+if __name__ == "__main__":
+    # Volumina von NaOH (in µL)
+    volumes = np.arange(0, 16500, 500)  
+
+    # Liste der pH-Werte
+    pH_values = [
+        2.36, 2.39, 2.46, 2.52, 2.59, 2.67, 2.78, 2.92, 3.13, 3.50, 5.36, 6.20, 6.52, 6.73, 6.92, 7.10, 7.28, 7.48, 7.73, 8.11, 8.88, 9.51, 9.85, 10.11, 10.32, 10.51, 10.68, 10.84, 10.97, 11.08, 11.17, 11.24, 11.31]
+    
+    # Liste der Potentiale
+    potential_values = [
+        354, 352, 348, 345, 341, 337, 331, 324, 313, 296, 200, 160, 138, 120, 108, 97, 86, 74, 58, 35, 7, -40, -58, -70, -79, -86, -93, -99, -104, -109, -114, -119, -124]
+
+    # Verarbeite die Daten 
+    process_data_for_all_ansätze(volumes, pH_values, potential_values)
