@@ -1,65 +1,82 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def calculate_and_plot(ext_pH4, ext_pH5):
-    # Constants for Nernst Equation
-    R = 8.314  # Gas constant (J/(mol*K))
-    T = 298.15  # Temperature (K)
-    F = 96485  # Faraday's constant (C/mol)
-    E0_hexacyanoferrat = 0.36  # Standard potential for Fe2+/Fe3+ (V)
+def berechne_und_plotte(ext_pH4, ext_pH5):
+    # Konstanten für die Nernst-Gleichung
+    R = 8.314  # Gaskonstante (J/(mol*K))
+    T = 298.15  # Temperatur (K)
+    F = 96485  # Faraday-Konstante (C/mol)
+    E0_hexacyanoferrat = 0.36  # Standardpotential für Fe²⁺/Fe³⁺ (V)
 
-    # 1. Calculate % oxidized DCPIP
-    perc_pH4 = [ext / ext_pH4[-1] * 100 for ext in ext_pH4]
-    perc_pH5 = [ext / ext_pH5[-1] * 100 for ext in ext_pH5]
+    # 1. Berechnung des % oxidierten DCPIP
+    proz_pH4 = [round(ext / ext_pH4[-1] * 100, 2) for ext in ext_pH4]
+    proz_pH5 = [round(ext / ext_pH5[-1] * 100, 2) for ext in ext_pH5]
 
-    # 2. Plot % oxidized DCPIP vs Volume of Fe²⁺
+    # 2. Graphen erstellen: % oxidiertes DCPIP vs. Volumen von Fe²⁺
     vol_Fe2_pH4 = [1000, 900, 800, 750, 700, 650, 600, 550, 500, 400, 300, 200, 100, 0]
     vol_Fe2_pH5 = [1000, 975, 950, 925, 900, 875, 850, 825, 800, 700, 600, 400, 200, 0]
 
     plt.figure(figsize=(10, 5))
-    plt.plot(vol_Fe2_pH4, perc_pH4, 'o-', label="pH 4.0 (546 nm)")
-    plt.plot(vol_Fe2_pH5, perc_pH5, 'o-', label="pH 5.0 (578 nm)")
-    plt.xlabel("Volume of Fe²⁺ (µL)")
-    plt.ylabel("% Oxidized DCPIP")
-    plt.title("Oxidized DCPIP as a Function of Fe²⁺ Volume")
+    plt.plot(vol_Fe2_pH4, proz_pH4, 'o-', label="pH 4,0 (546 nm)")
+    plt.plot(vol_Fe2_pH5, proz_pH5, 'o-', label="pH 5,0 (578 nm)")
+    plt.xlabel("Volumen von Fe²⁺ (µL)")
+    plt.ylabel("% oxidiertes DCPIP")
+    plt.title("Oxidiertes DCPIP in Abhängigkeit vom Fe²⁺-Volumen")
     plt.legend()
     plt.grid()
     plt.show()
 
-    # 3. Find the 50% point and calculate the Fe³⁺/Fe²⁺ ratio
-    def find_50_percent(volumes, percentages):
-        closest_index = np.argmin(np.abs(np.array(percentages) - 50))
-        vol_Fe2 = volumes[closest_index]
-        vol_Fe3 = 1200 - vol_Fe2  # Total volume of Fe³⁺ + Fe²⁺ = 1200 µL
-        ratio = vol_Fe3 / vol_Fe2
-        return vol_Fe2, vol_Fe3, ratio
+    # 3. Bestimmung des 50%-Punktes und Berechnung des Fe³⁺/Fe²⁺-Verhältnisses
+    def finde_50_prozent(volumina, prozent):
+        naechster_index = np.argmin(np.abs(np.array(prozent) - 50))
+        vol_Fe2 = volumina[naechster_index]
+        vol_Fe3 = 1200 - vol_Fe2  # Gesamtvolumen von Fe³⁺ + Fe²⁺ = 1200 µL
+        verhältnis = vol_Fe3 / vol_Fe2
+        return vol_Fe2, vol_Fe3, verhältnis
 
-    vol2_50_pH4, vol3_50_pH4, ratio_pH4 = find_50_percent(vol_Fe2_pH4, perc_pH4)
-    vol2_50_pH5, vol3_50_pH5, ratio_pH5 = find_50_percent(vol_Fe2_pH5, perc_pH5)
+    vol2_50_pH4, vol3_50_pH4, verhältnis_pH4 = finde_50_prozent(vol_Fe2_pH4, proz_pH4)
+    vol2_50_pH5, vol3_50_pH5, verhältnis_pH5 = finde_50_prozent(vol_Fe2_pH5, proz_pH5)
 
-    # 4. Calculate potential using the Nernst equation
-    def calculate_potential(ratio):
-        return E0_hexacyanoferrat + (R * T / F) * np.log(ratio)
+    # 4. Berechnung des Potentials mit der Nernst-Gleichung
+    def berechne_potential(verhältnis):
+        return E0_hexacyanoferrat + (R * T / F) * np.log(verhältnis)
 
-    potential_pH4 = calculate_potential(ratio_pH4)
-    potential_pH5 = calculate_potential(ratio_pH5)
+    potential_pH4 = berechne_potential(verhältnis_pH4)
+    potential_pH5 = berechne_potential(verhältnis_pH5)
 
-    # Print results
-    print("Calculated Percentages:")
-    print(f"pH 4.0: {perc_pH4}")
-    print(f"pH 5.0: {perc_pH5}\n")
+    # Ergebnisse ausgeben
+    print("Berechnete Prozentwerte:")
+    print(f"pH 4,0: {proz_pH4}")
+    print(f"pH 5,0: {proz_pH5}\n")
 
-    print("50% Points and Ratios:")
-    print(f"pH 4.0: Fe²⁺ Volume = {vol2_50_pH4} µL, Fe³⁺ Volume = {vol3_50_pH4} µL, Ratio = {ratio_pH4:.2f}")
-    print(f"pH 5.0: Fe²⁺ Volume = {vol2_50_pH5} µL, Fe³⁺ Volume = {vol3_50_pH5} µL, Ratio = {ratio_pH5:.2f}\n")
+    print("50%-Punkte und Verhältnisse:")
+    print(f"pH 4,0: Fe²⁺-Volumen = {vol2_50_pH4} µL, Fe³⁺-Volumen = {vol3_50_pH4} µL, Verhältnis = {verhältnis_pH4:.2f}")
+    print(f"pH 5,0: Fe²⁺-Volumen = {vol2_50_pH5} µL, Fe³⁺-Volumen = {vol3_50_pH5} µL, Verhältnis = {verhältnis_pH5:.2f}\n")
 
-    print("Potentials:")
-    print(f"pH 4.0 Potential = {potential_pH4:.3f} V")
-    print(f"pH 5.0 Potential = {potential_pH5:.3f} V")
+    print("Berechnete Potentiale:")
+    print(f"pH 4,0 Potential = {potential_pH4:.3f} V")
+    print(f"pH 5,0 Potential = {potential_pH5:.3f} V")
 
-# Example input lists (replace these with your actual measured values)
+    # 5. Vergleich mit Literaturwerten
+    def berechne_e0_pH(E0_prime, pH):
+        n = 2  # Elektronenübertragungen
+        return E0_prime - (0.059 / n) * (pH - 7)
+
+    # Berechnung der Standardpotentiale bei pH 4 und pH 5
+    E0_prime = 0.233  # Literaturwert bei pH 7 (V)
+    E0_pH4 = berechne_e0_pH(E0_prime, 4)
+    E0_pH5 = berechne_e0_pH(E0_prime, 5)
+
+    # Vergleich der experimentellen und berechneten Potentiale
+    print("\nVergleich der experimentellen und berechneten Werte:")
+    print(f"Berechnetes E0 bei pH 4,0: {E0_pH4:.3f} V")
+    print(f"Berechnetes E0 bei pH 5,0: {E0_pH5:.3f} V")
+    print(f"Experimentelles Potential bei pH 4,0: {potential_pH4:.3f} V")
+    print(f"Experimentelles Potential bei pH 5,0: {potential_pH5:.3f} V")
+
+# Extinktion
 ext_pH4 = [0, 0.012, 0.021, 0.04, 0.062, 0.057, 0.062, 0.053, 0.045, 0.085, 0.087, 0.093, 0.086, 0.105]
 ext_pH5 = [0, 0.004, 0.037, 0.004, 0.076, 0.04, 0.213, 0.212, 0.256, 0.275, 0.29, 0.292, 0.27, 0.276]
 
-# Run the function
-calculate_and_plot(ext_pH4, ext_pH5)
+# Funktion ausführen
+berechne_und_plotte(ext_pH4, ext_pH5)
