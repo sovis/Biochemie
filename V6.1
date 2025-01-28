@@ -70,6 +70,7 @@ def plot_redox_graphs(k4_volumen_liste, k3_volumen_liste, potential_liste_feii, 
     # Regressionsdaten
     x_data_feii = np.array([log_verhältnis_feii[i] for i in valid_indices_feii])
     y_data_feii = np.array([potential_liste_feii[i] for i in valid_indices_feii])
+    ##silberelektrode - +213mV?
     # y_data_feii = np.array([combined_potential_list[i] for i in valid_indices_feii]) 
 
     # Lineare Regression für FeII konstant
@@ -103,7 +104,7 @@ k3_volumen_liste_feiii = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0,
 potential_liste_feii = [448, 347, 330, 320, 313, 302, 289, 279, 272, 266, 261, 257, 254, 251, 248, 238, 231, 225, 221, 217, 214]
 potential_liste_feiii = [81, 97, 107, 114, 119, 124, 139, 149, 156, 161, 166, 170, 173, 177, 179, 189, 196, 202, 206, 210, 213]
 ## Silberelektrode - +213mV?
-combined_potential_list = [value + 213 for value in (potential_liste_feii + potential_liste_feiii)]
+#combined_potential_list = [value + 213 for value in (potential_liste_feii + potential_liste_feiii)]
 
 
 # Prozentwerte berechnen
